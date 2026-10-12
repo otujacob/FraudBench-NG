@@ -1,0 +1,250 @@
+{
+ "old": {
+  "rows": 1000000,
+  "fraud": 3000,
+  "prevalence": 0.003,
+  "prevalence_vs_nibss": 353.73472940807363,
+  "share_00_06": 0.093868,
+  "hour_share_max_min": 6.161739699149772,
+  "eta2_customer": 0.01014064121310776,
+  "interarrival_cv": 1.024949194068086,
+  "share_tx24_eq1": 0.75501,
+  "share_tx24_eq0": 0.0,
+  "min_tx24": 1,
+  "spearman_velocity_ratio": 0.7658747772127902,
+  "share_velocity_eq_ratio": 0.75501,
+  "share_ratio_eq_1": 8e-06,
+  "share_cust_txcount_constant": 1.0,
+  "share_cust_txcount_eq_rows": 1.0,
+  "share_cust_mean_total_constant": 1.0,
+  "median_prior_tx_at_first_row": 100.0,
+  "corr_merchant_score_rate": -0.1488112356056303,
+  "month_rate_max_min": 4.022227654028644,
+  "chi2_p_bank": 0.9026415080938623,
+  "chi2_p_bank_customer": 0.4273881807116982,
+  "chi2_p_location": 0.24340743744707816,
+  "chi2_p_location_customer": 0.22207682598814432,
+  "auc": {
+   "composite_risk": 0.507771554663992,
+   "velocity_score": 0.5069482347041123,
+   "amount_vs_mean_ratio": 0.5056072472417252,
+   "amount": 0.730332223503845,
+   "tx_count_total": 0.5058987928786359,
+   "amount_std_total": 0.5034138976930792,
+   "amount_mean_total": 0.5013128311601471,
+   "amount_std_7d": 0.5158433375125375,
+   "tx_count_24h": 0.5035041549648948,
+   "merchant_risk_score": 0.5050949600468071
+  },
+  "composite_linear_r2": 0.9672772954087663,
+  "rf": {
+   "roc_auc": 0.9790358541393034,
+   "pr_auc": 0.8348066797773088,
+   "base_rate": 0.0017899910500447497,
+   "top_features": [
+    [
+     "amount_log",
+     0.139
+    ],
+    [
+     "amount",
+     0.136
+    ],
+    [
+     "amount_vs_mean_ratio",
+     0.133
+    ],
+    [
+     "amount_sum_24h",
+     0.099
+    ],
+    [
+     "velocity_score",
+     0.067
+    ]
+   ]
+  },
+  "rf_no_history": {
+   "roc_auc": 0.7242159517308229,
+   "pr_auc": 0.0058328559151242815,
+   "base_rate": 0.0017899910500447497,
+   "top_features": [
+    [
+     "amount",
+     0.182
+    ],
+    [
+     "amount_log",
+     0.179
+    ],
+    [
+     "hour",
+     0.046
+    ],
+    [
+     "merchant_risk_score",
+     0.045
+    ],
+    [
+     "hour_sin",
+     0.043
+    ]
+   ]
+  }
+ },
+ "mid": {
+  "rows": 660446,
+  "fraud": 1973,
+  "prevalence": 0.002987375197972279,
+  "prevalence_vs_nibss": 352.24611909837154,
+  "share_00_06": 0.2502960120888006,
+  "hour_share_max_min": 1.0184350375664284,
+  "eta2_customer": 0.015337439579066525,
+  "interarrival_cv": 1.3192050732560532,
+  "share_tx24_eq1": 0.7843533006483497,
+  "share_tx24_eq0": 0.0,
+  "min_tx24": 1,
+  "spearman_velocity_ratio": 0.705272393568043,
+  "share_velocity_eq_ratio": 0.7843533006483497,
+  "share_ratio_eq_1": 0.015150368084597379,
+  "share_cust_txcount_constant": 0.0,
+  "share_cust_txcount_eq_rows": 1.0,
+  "share_cust_mean_total_constant": 0.0,
+  "median_prior_tx_at_first_row": 1.0,
+  "corr_merchant_score_rate": 0.9790260308656157,
+  "month_rate_max_min": 1.5497265948155343,
+  "chi2_p_bank": 0.21775828761631294,
+  "chi2_p_bank_customer": 0.2458099847584474,
+  "chi2_p_location": 0.9904659930175664,
+  "chi2_p_location_customer": 0.9194261531645247,
+  "auc": {
+   "velocity_score": 0.6372361425228037,
+   "amount_vs_mean_ratio": 0.6771488476330709,
+   "amount": 0.6834738609312627,
+   "tx_count_total": 0.5034200104504022,
+   "amount_std_total": 0.5580288678910327,
+   "amount_mean_total": 0.5627245004961559,
+   "amount_std_7d": 0.5681149951481728,
+   "tx_count_24h": 0.5033470533299604,
+   "merchant_risk_score": 0.6243231259183801
+  },
+  "rf": {
+   "roc_auc": 0.6784099990735195,
+   "pr_auc": 0.013389146809833236,
+   "base_rate": 0.0030130971307441895,
+   "top_features": [
+    [
+     "amount_log",
+     0.077
+    ],
+    [
+     "amount_vs_mean_ratio",
+     0.071
+    ],
+    [
+     "amount",
+     0.062
+    ],
+    [
+     "amount_sum_24h",
+     0.054
+    ],
+    [
+     "amount_mean_7d",
+     0.054
+    ]
+   ]
+  }
+ },
+ "new": {
+  "rows": 2102211,
+  "fraud": 2094,
+  "prevalence": 0.0009960941123417202,
+  "prevalence_vs_nibss": 117.4510270980579,
+  "share_00_06": 0.06737668102773699,
+  "hour_share_max_min": 7.3164288668320925,
+  "eta2_customer": 0.45913455982356777,
+  "interarrival_cv": 1.778131309606086,
+  "share_tx24_eq1": 0.2766002080666498,
+  "share_tx24_eq0": 0.5775695208520933,
+  "min_tx24": 0,
+  "spearman_velocity_ratio": 0.0001349269034548735,
+  "share_velocity_eq_ratio": 0.0002602022346948047,
+  "share_ratio_eq_1": 2.711430964827032e-05,
+  "share_cust_txcount_constant": 0.0,
+  "share_cust_txcount_eq_rows": 0.00456,
+  "share_cust_mean_total_constant": 0.0,
+  "median_prior_tx_at_first_row": 17.0,
+  "corr_merchant_score_rate": 0.9845452319656334,
+  "month_rate_max_min": 2.067731132006341,
+  "chi2_p_bank": 0.5551204767056233,
+  "chi2_p_bank_customer": 0.7350461905299073,
+  "chi2_p_location": 0.003739979689227941,
+  "chi2_p_location_customer": 0.07311767388289159,
+  "auc": {
+   "velocity_score": 0.669561823393913,
+   "amount_vs_mean_ratio": 0.6586566991690583,
+   "amount": 0.6684536058133176,
+   "tx_count_total": 0.5124215692773844,
+   "amount_std_total": 0.5329085170735285,
+   "amount_mean_total": 0.5166413760167732,
+   "amount_std_7d": 0.6139385836573614,
+   "tx_count_24h": 0.6553365649820923,
+   "merchant_risk_score": 0.578571223724776
+  },
+  "rf": {
+   "roc_auc": 0.7873221872561371,
+   "pr_auc": 0.057291419362343284,
+   "base_rate": 0.0007325606562601827,
+   "top_features": [
+    [
+     "amount_vs_mean_ratio",
+     0.116
+    ],
+    [
+     "amount_log",
+     0.065
+    ],
+    [
+     "velocity_score",
+     0.063
+    ],
+    [
+     "amount",
+     0.058
+    ],
+    [
+     "amount_sum_24h",
+     0.054
+    ]
+   ]
+  },
+  "rf_no_history": {
+   "roc_auc": 0.6912757363549966,
+   "pr_auc": 0.002843305794752597,
+   "base_rate": 0.0007325606562601827,
+   "top_features": [
+    [
+     "amount",
+     0.137
+    ],
+    [
+     "amount_log",
+     0.134
+    ],
+    [
+     "hour_sin",
+     0.062
+    ],
+    [
+     "hour_cos",
+     0.057
+    ],
+    [
+     "merchant_risk_score",
+     0.047
+    ]
+   ]
+  }
+ }
+}

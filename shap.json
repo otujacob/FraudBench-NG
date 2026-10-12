@@ -1,0 +1,50 @@
+{
+ "earlier": {
+  "pr_auc": 0.8438520261943134,
+  "roc_auc": 0.9750161650277589,
+  "base_rate": 0.0017899910500447497,
+  "group_share": {
+   "Amount": 0.47209998965263367,
+   "Channel, bank, location, age": 0.0860000029206276,
+   "Customer history": 0.35929998755455017,
+   "Merchant": 0.025499999523162842,
+   "Time": 0.05700000002980232
+  },
+  "top": {
+   "amount": 2.308000087738037,
+   "amount_sum_24h": 0.7127000093460083,
+   "amount_vs_mean_ratio": 0.4668999910354614,
+   "amount_log": 0.35370001196861267,
+   "tx_count_24h": 0.1582999974489212,
+   "channel_IB": 0.13210000097751617,
+   "amount_mean_7d": 0.1006999984383583,
+   "amount_std_7d": 0.09619999676942825
+  },
+  "n_fraud": 358,
+  "n_rows": 4358
+ },
+ "fraudbench": {
+  "pr_auc": 0.04315789781770889,
+  "roc_auc": 0.8135155652658955,
+  "base_rate": 0.0007325606562601827,
+  "group_share": {
+   "Amount": 0.07419999688863754,
+   "Channel, bank, location, age": 0.2678999900817871,
+   "Customer history": 0.4648999869823456,
+   "Merchant": 0.09570000320672989,
+   "Time": 0.09740000218153
+  },
+  "top": {
+   "amount_vs_mean_ratio": 0.47609999775886536,
+   "amount_sum_24h": 0.3206000030040741,
+   "merchant_risk_score": 0.30480000376701355,
+   "tx_count_total": 0.2904999852180481,
+   "amount": 0.27559998631477356,
+   "channel_IB": 0.2671000063419342,
+   "amount_std_total": 0.1987999975681305,
+   "amount_mean_total": 0.1923999935388565
+  },
+  "n_fraud": 308,
+  "n_rows": 4308
+ }
+}
