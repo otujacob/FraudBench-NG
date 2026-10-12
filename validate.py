@@ -10,21 +10,23 @@ d=pd.read_parquet('data/nibss_synthetic_fraud.parquet'); f=d[d.is_fraud==1]; l=d
 R={}
 def save(n): plt.tight_layout(); plt.savefig(f'figures/{n}.png',bbox_inches='tight'); plt.close()
 # ---- NIBSS comparisons
-chs=G.CHANNELS; nc=pd.Series(G.NIBSS_CH_COUNT); nc=nc/nc.sum(); sc=f.channel.value_counts(normalize=True).reindex(chs)
+chs=G.CHANNELS; nc=pd.Series(G.NIBSS_CH_COUNT); nc=nc/nc.sum(); sc=f[f.is_followon==0].channel.value_counts(normalize=True).reindex(chs)
 fig,ax=plt.subplots(1,2,figsize=(9,3.4)); x=np.arange(6)
 ax[0].bar(x-.2,nc.reindex(chs)*100,.4,color=C['nibss'],label='NIBSS 2023'); ax[0].bar(x+.2,sc*100,.4,color=C['syn'],label='Synthetic')
 ax[0].set_xticks(x); ax[0].set_xticklabels(chs); ax[0].set_ylabel('Share of fraud cases (%)'); ax[0].legend(frameon=False); ax[0].set_title('(a) Channel mix')
-lm={c:G.NIBSS_CH_LOSS_M[c]*1e6/G.NIBSS_CH_COUNT[c] for c in chs}; sm=f.groupby('channel').amount.mean().reindex(chs)
+lm={c:G.NIBSS_CH_LOSS_M[c]*1e6/G.NIBSS_CH_COUNT[c] for c in chs}; inc_loss=f.groupby('incident_id').agg(ch=('channel','first'),loss=('amount','sum')); sm=inc_loss.groupby('ch').loss.mean().reindex(chs)
 ax[1].bar(x-.2,[lm[c]/1e3 for c in chs],.4,color=C['nibss'],label='NIBSS 2023'); ax[1].bar(x+.2,sm/1e3,.4,color=C['syn'],label='Synthetic')
-ax[1].set_yscale('log'); ax[1].set_xticks(x); ax[1].set_xticklabels(chs); ax[1].set_ylabel('Mean loss per case (NGN thousand)'); ax[1].set_title('(b) Mean fraud amount'); save('fig_nibss_channel')
-R['chi2_channel']=float(stats.chisquare(f.channel.value_counts().reindex(chs).values, nc.reindex(chs).values*len(f))[1])
-nm=np.array(G.NIBSS_MONTH_COUNT)/sum(G.NIBSS_MONTH_COUNT); smm=f.timestamp.dt.month.value_counts(normalize=True).sort_index()
+ax[1].set_yscale('log'); ax[1].set_xticks(x); ax[1].set_xticklabels(chs); ax[1].set_ylabel('Mean loss per incident (NGN thousand)'); ax[1].set_title('(b) Mean loss per incident'); save('fig_nibss_channel')
+R['chi2_channel']=float(stats.chisquare(f.groupby('incident_id').channel.first().value_counts().reindex(chs).values, nc.reindex(chs).values*f.incident_id.nunique())[1])
+R['incident_mean_loss']={c:float(sm[c]) for c in chs}; R['nibss_mean_loss']={c:float(lm[c]) for c in chs}; R['row_mean_amount']={c:float(v) for c,v in f.groupby('channel').amount.mean().items()}
+R['channel_share_incidents']={c:float(v) for c,v in f.groupby('incident_id').channel.first().value_counts(normalize=True).reindex(chs).items()}
+nm=np.array(G.NIBSS_MONTH_COUNT)/sum(G.NIBSS_MONTH_COUNT); smm=f[f.is_followon==0].timestamp.dt.month.value_counts(normalize=True).sort_index()
 fig,ax=plt.subplots(1,2,figsize=(9,3.4)); m=np.arange(1,13)
 ax[0].plot(m,nm*100,'o-',color=C['nibss'],label='NIBSS 2023'); ax[0].plot(m,smm.values*100,'s-',color=C['syn'],label='Synthetic'); ax[0].set_xticks(m); ax[0].set_xlabel('Month'); ax[0].set_ylabel('Share of fraud cases (%)'); ax[0].legend(frameon=False); ax[0].set_title('(a) Monthly profile')
-tn=pd.Series(G.NIBSS_TECH_COUNT); tn=tn/tn.sum(); ts_=f.fraud_technique.value_counts(normalize=True).reindex(G.TECHNIQUES); xx=np.arange(6)
+tn=pd.Series(G.NIBSS_TECH_COUNT); tn=tn/tn.sum(); ts_=f[f.is_followon==0].fraud_technique.value_counts(normalize=True).reindex(G.TECHNIQUES); xx=np.arange(6)
 ax[1].bar(xx-.2,tn.reindex(G.TECHNIQUES)*100,.4,color=C['nibss'],label='NIBSS 2023'); ax[1].bar(xx+.2,ts_*100,.4,color=C['syn'],label='Synthetic'); ax[1].set_xticks(xx); ax[1].set_xticklabels([t.replace('_','\n') for t in G.TECHNIQUES],fontsize=7); ax[1].set_ylabel('Share (%)'); ax[1].set_title('(b) Technique mix'); save('fig_nibss_month_technique')
-R['chi2_month']=float(stats.chisquare(f.timestamp.dt.month.value_counts().sort_index().values, nm*len(f))[1])
-R['chi2_technique']=float(stats.chisquare(f.fraud_technique.value_counts().reindex(G.TECHNIQUES).values, tn.reindex(G.TECHNIQUES).values*len(f))[1])
+fi=f[f.is_followon==0]; R['chi2_month']=float(stats.chisquare(fi.timestamp.dt.month.value_counts().sort_index().values, nm*len(fi))[1])
+R['chi2_technique']=float(stats.chisquare(f[f.is_followon==0].fraud_technique.value_counts().reindex(G.TECHNIQUES).values, tn.reindex(G.TECHNIQUES).values*int((f.is_followon==0).sum()))[1])
 # ---- prevalence vs other datasets
 fig,ax=plt.subplots(figsize=(5.2,3.2)); names=['NIBSS 2023\n(real, volume)','ULB card\n(real)','PaySim\n(synthetic)','This dataset','IEEE-CIS\n(real)']; v=[0.0008,0.172,0.129,0.1,3.499]
 ax.barh(names,v,color=[C['nibss'],C['legit'],C['legit'],C['syn'],C['legit']]); ax.set_xscale('log'); ax.set_xlabel('Fraud prevalence (%)'); ax.invert_yaxis(); save('fig_prevalence')
@@ -32,6 +34,7 @@ ax.barh(names,v,color=[C['nibss'],C['legit'],C['legit'],C['syn'],C['legit']]); a
 fig,ax=plt.subplots(1,2,figsize=(9,3.4)); bins=np.logspace(2,7.5,70)
 ax[0].hist(l.amount,bins,density=True,alpha=.6,color=C['legit'],label='Legitimate'); ax[0].hist(f.amount,bins,density=True,alpha=.7,color=C['fraud'],label='Fraud'); ax[0].set_xscale('log'); ax[0].set_xlabel('Amount (NGN)'); ax[0].set_ylabel('Density'); ax[0].legend(frameon=False); ax[0].set_title('(a) Amount by class')
 cm=d.groupby('customer_id').amount.apply(lambda s:np.log(s).mean()); ax[1].hist(cm,60,color=C['x'],alpha=.8); ax[1].set_xlabel('Customer mean log-amount'); ax[1].set_ylabel('Customers'); ax[1].set_title('(b) Spend heterogeneity'); save('fig_amounts')
+R['n_incidents']=int(f.incident_id.nunique()); R['rows_per_incident']=float(len(f)/f.incident_id.nunique()); R['followon_share']=float(f.is_followon.mean()); R['atm_withdrawal_share_by_channel']={c:float((d[d.channel==c].merchant_category=='ATM Withdrawal').mean()) for c in chs}
 R['ks_amount_fraud_vs_legit']=float(stats.ks_2samp(l.amount.sample(200000,random_state=0),f.amount)[0])
 # ---- temporal
 fig,ax=plt.subplots(1,3,figsize=(11,3.2)); hh=d.groupby(d.timestamp.dt.hour).size()/len(d)*100
@@ -47,7 +50,7 @@ for a,(c,lab) in zip(ax,[('amount_vs_mean_ratio','Amount / running mean'),('velo
     a.hist(l[c].clip(upper=hi),b,density=True,alpha=.6,color=C['legit'],label='Legit'); a.hist(f[c].clip(upper=hi),b,density=True,alpha=.7,color=C['fraud'],label='Fraud'); a.set_xlabel(lab); a.set_yscale('log')
 ax[0].legend(frameon=False); save('fig_features_by_class')
 # ---- univariate AUC
-num=[c for c in d.columns if c not in ['transaction_id','customer_id','timestamp','is_fraud','fraud_technique','channel','bank','merchant_category','location','age_group']]
+num=[c for c in d.columns if c not in ['transaction_id','customer_id','timestamp','is_fraud','fraud_technique','incident_id','is_followon','channel','bank','merchant_category','location','age_group']]
 s=d.sample(600000,random_state=1) if False else d
 uni={c:float(roc_auc_score(d.is_fraud,d[c])) for c in num}; R['univariate_auc']=uni
 u=pd.Series(uni); u=(u-.5).abs().sort_values()+.5

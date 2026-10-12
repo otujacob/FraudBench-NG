@@ -32,6 +32,18 @@ MERCHANT_FRAUD_FACTOR = {                                           # [ASSUMED]
     'Education': 0.4, 'Transfer': 1.4, 'Electronics': 1.3, 'Transport': 0.9,
     'Airtime': 1.1, 'Fashion': 1.0, 'Restaurant': 0.8, 'Bill Payment': 1.2,
     'Entertainment': 1.1}
+# [ASSUMED] which merchant categories can occur on which channel (a transaction's merchant is drawn
+# uniformly from the categories allowed for its channel). Cash withdrawal only at ATMs and POS agents;
+# transfers only on digital channels; internet banking restricted to institutional payees.
+_ALL = [m for m in MERCHANTS]
+CH_MERCHANTS = {
+    'ATM': ['ATM Withdrawal'],
+    'POS': [m for m in _ALL if m != 'Transfer'],
+    'ECOM': [m for m in _ALL if m not in ('ATM Withdrawal', 'Transfer')],
+    'Mobile': [m for m in _ALL if m != 'ATM Withdrawal'],
+    'Web': [m for m in _ALL if m != 'ATM Withdrawal'],
+    'IB': ['Transfer', 'Bill Payment', 'Airtime', 'Education', 'Medical', 'Entertainment'],
+}
 TECHNIQUES = ['SOCIAL_ENGINEERING', 'ROBBERY', 'CARD_THEFT', 'PIN_COMPROMISE',
               'PHISHING', 'OTHER']
 
@@ -62,11 +74,36 @@ FRAUD_SIGMA = 0.9                                                  # [ASSUMED]
 BURST_PROB = 0.25      # [ASSUMED] prob. a legit tx follows the previous one within minutes
 BURST_MEAN_S = 900.0   # [ASSUMED]
 FRAUD_FOLLOW_P = 0.40  # [ASSUMED] prob. that a fraud event is followed by another (takeover bursts)
+FRAUD_SPLIT_ALPHA = 2.0  # [ASSUMED] an incident's loss is split across its transactions in Dirichlet(alpha) proportions
 WARM_DAYS = 90         # burn-in simulated before 1 Jan 2023 and discarded, so that history features
                        # are on comparable footing in every part of the released year
 TOTAL_S = (365 + WARM_DAYS) * 86400
 WARM_S = WARM_DAYS * 86400
 KEY = 1e9              # customer key spacing (> seconds in a year)
+
+
+# Columns that are bookkeeping, not features, and the merchant columns that carry the generator's own
+# merchant assumption. model_matrix() leaves all of them out by default.
+NON_FEATURES = ['transaction_id', 'customer_id', 'timestamp', 'is_fraud', 'fraud_technique',
+                'incident_id', 'is_followon']
+MERCHANT_COLS = ['merchant_category', 'merchant_risk_score']
+CATEGORICAL = ['channel', 'merchant_category', 'bank', 'location', 'age_group']
+
+
+def model_matrix(d, include_merchant=False):
+    """Default feature matrix for modelling: drops identifiers, labels, incident bookkeeping and (unless
+    include_merchant) the merchant columns, which only reflect the generator's merchant assumption."""
+    drop = [c for c in NON_FEATURES + ([] if include_merchant else MERCHANT_COLS) if c in d.columns]
+    cats = [c for c in CATEGORICAL if c in d.columns and c not in drop]
+    return pd.get_dummies(d.drop(columns=drop), columns=cats).astype(float)
+
+
+def draw_merchants(ch, rng):
+    out = np.empty(len(ch), dtype=object)
+    for c in CHANNELS:
+        m = ch == c
+        out[m] = rng.choice(CH_MERCHANTS[c], int(m.sum()))
+    return out
 
 
 ORIGIN = pd.Timestamp('2023-01-01') - pd.Timedelta(days=WARM_DAYS)   # Monday 3 Oct 2022
@@ -117,7 +154,7 @@ def generate(n_customers=25000, prevalence=0.001, seed=42, drop_burnin=True,
     # ---- legit channel / merchant / amount ---------------------------------
     pref = cust['pref'].values[cid]
     ch = np.where(rng.random(N) < 0.70, pref, rng.choice(CHANNELS, N, p=CH_P))
-    mer = rng.choice(MERCHANTS, N)
+    mer = draw_merchants(ch, rng)
     shift = pd.Series(ch).map(CH_LEGIT_SHIFT).values
     amt = np.exp(rng.normal(cust['mu'].values[cid] + shift, cust['sig'].values[cid]))
     fraud = np.zeros(N, bool)
@@ -129,29 +166,33 @@ def generate(n_customers=25000, prevalence=0.001, seed=42, drop_burnin=True,
     m_share = np.array(NIBSS_MONTH_COUNT) / sum(NIBSS_MONTH_COUNT)
     m_factor = m_share / (mdays / 365)
     month = month_of(t)
-    # choose initiating events per channel (quota = NIBSS channel share of the target
-    # fraud count) by weighted sampling without replacement on month x merchant weights;
-    # draw follow-on counts and keep the prefix whose total hits the channel quota
+    # NIBSS counts and losses are per CASE (one incident). The generator therefore works in incidents:
+    # the channel quota is a number of incidents (NIBSS channel share of all incidents); each incident
+    # has one initiating transaction plus a geometric number of follow-on transactions, and ONE incident
+    # loss is drawn per incident and then split across its transactions. The expected number of rows per
+    # incident is 1/(1-phi), so the number of incidents is target*(1-phi) and the expected prevalence stays
+    # at `prevalence` whatever phi is. Initiators are sampled without replacement on month x merchant weights.
     kept = t >= WARM_S                                  # fraud is injected only into the released year
     target = int(round(prevalence * kept.sum()))
+    n_incidents = int(round(target * (1 - FRAUD_FOLLOW_P)))
     init = np.zeros(N, bool); n_extra = np.zeros(N, int)
     for c in CHANNELS:
-        quota = int(round(ch_share[c] * target))
+        quota = int(round(ch_share[c] * n_incidents))
         pool = np.flatnonzero((ch == c) & kept)
         wc = (m_factor[month[pool] - 1] * pd.Series(mer[pool]).map(mfac).values)
         cand = rng.choice(pool, size=min(len(pool), quota), replace=False, p=wc / wc.sum())
-        extra_c = rng.geometric(1 - FRAUD_FOLLOW_P, len(cand)) - 1
-        keep = np.cumsum(1 + extra_c) <= quota
-        init[cand[keep]] = True; n_extra[cand[keep]] = extra_c[keep]
+        init[cand] = True; n_extra[cand] = rng.geometric(1 - FRAUD_FOLLOW_P, len(cand)) - 1
 
-    # ---- fraud amounts, technique, takeover bursts -------------------------
-    loss_mean = {c: NIBSS_CH_LOSS_M[c] * 1e6 / NIBSS_CH_COUNT[c] for c in CHANNELS}
+    # ---- incident losses, technique, takeover bursts -----------------------
+    loss_mean = {c: NIBSS_CH_LOSS_M[c] * 1e6 / NIBSS_CH_COUNT[c] for c in CHANNELS}   # NGN per case
     tp = np.array([NIBSS_TECH_COUNT[k] for k in TECHNIQUES], float); tp /= tp.sum()
 
-    ridx = np.repeat(np.arange(N), n_extra)
+    init_idx = np.flatnonzero(init); n_inc = len(init_idx)
+    pos = np.full(N, -1); pos[init_idx] = np.arange(n_inc)          # initiating row -> incident number
+    ridx = np.repeat(np.arange(N), n_extra)                         # follow-on rows -> initiating row
+    inc_ex = pos[ridx]
     gap = rng.exponential(300.0, len(ridx))
-    # cumulative gaps within each initiating event (ridx is sorted)
-    cg = np.cumsum(gap)
+    cg = np.cumsum(gap)                                  # cumulative gaps within each incident (ridx is sorted)
     if len(ridx):
         fst = np.r_[True, ridx[1:] != ridx[:-1]]
         fi = np.flatnonzero(fst)
@@ -159,25 +200,27 @@ def generate(n_customers=25000, prevalence=0.001, seed=42, drop_burnin=True,
         cg = cg - (cg[fi] - gap[fi])[gi]
     t_ex = np.minimum(t[ridx] + cg, TOTAL_S - 1)
 
-    # initiating rows: relabel in place
+    # one loss per incident (mean = NIBSS loss per case), split across the incident's transactions
+    tm = pd.Series(ch[init_idx]).map(loss_mean).values
+    loss = np.exp(rng.normal(np.log(tm) - FRAUD_SIGMA ** 2 / 2, FRAUD_SIGMA))
+    g0 = rng.gamma(FRAUD_SPLIT_ALPHA, 1.0, n_inc); g1 = rng.gamma(FRAUD_SPLIT_ALPHA, 1.0, len(ridx))
+    tot = g0 + np.bincount(inc_ex, weights=g1, minlength=n_inc)
     fraud[init] = True
-    tech[init] = rng.choice(TECHNIQUES, init.sum(), p=tp)
-    tm = pd.Series(ch[init]).map(loss_mean).values
-    amt[init] = np.exp(rng.normal(np.log(tm) - FRAUD_SIGMA ** 2 / 2, FRAUD_SIGMA))
-
-    # follow-on rows appended
+    tech[init] = rng.choice(TECHNIQUES, n_inc, p=tp)
+    amt[init_idx] = np.maximum(loss * g0 / tot, 1.0)
+    e_amt = np.maximum(loss[inc_ex] * g1 / tot[inc_ex], 1.0)
     e_ch, e_tech = ch[ridx], tech[ridx]
-    e_tm = pd.Series(e_ch).map(loss_mean).values
-    e_amt = np.exp(rng.normal(np.log(e_tm) - FRAUD_SIGMA ** 2 / 2, FRAUD_SIGMA))
+    inc = np.full(N, -1); inc[init_idx] = np.arange(n_inc)
     cid = np.r_[cid, cid[ridx]]; t = np.r_[t, t_ex]
-    ch = np.r_[ch, e_ch]; mer = np.r_[mer, rng.choice(MERCHANTS, len(ridx))]
+    ch = np.r_[ch, e_ch]; mer = np.r_[mer, draw_merchants(e_ch, rng)]
     amt = np.r_[amt, e_amt]; fraud = np.r_[fraud, np.ones(len(ridx), bool)]
     tech = np.r_[tech, e_tech]
+    inc = np.r_[inc, inc_ex]; isfo = np.r_[np.zeros(N, int), np.ones(len(ridx), int)]
     N = len(cid)
 
     # ---- sort chronologically within customer; causal features -------------
     order = np.lexsort((t, cid))
-    cid, t, ch, mer, amt, fraud, tech = (a[order] for a in (cid, t, ch, mer, amt, fraud, tech))
+    cid, t, ch, mer, amt, fraud, tech, inc, isfo = (a[order] for a in (cid, t, ch, mer, amt, fraud, tech, inc, isfo))
     amt = np.round(amt, 2)
     first = np.r_[True, cid[1:] != cid[:-1]]
     gstart = np.flatnonzero(first)
@@ -228,6 +271,8 @@ def generate(n_customers=25000, prevalence=0.001, seed=42, drop_burnin=True,
         'age_group': cust['age_group'].values[cid],
         'is_fraud': fraud.astype(int),
         'fraud_technique': np.where(fraud, tech, None),
+        'incident_id': np.where(inc >= 0, 'INC' + pd.Series(inc).astype(str).str.zfill(7).values, None),
+        'is_followon': isfo,
         'amount_log': np.log1p(amt),
         'amount_vs_mean_ratio': ratio.round(6),
         'amount_sum_24h': sum24.round(2), 'amount_mean_7d': m7.round(2),

@@ -17,8 +17,8 @@ fig, ax = plt.subplots(figsize=(10.5, 4.4)); ax.set_xlim(0, 21); ax.set_ylim(0, 
 box(ax, 0.3, 6.6, 6.2, 1.9, 'NIBSS 2023 tables\nchannel, month, technique shares\nmean loss per case', '#BFD4EA')
 box(ax, 8.0, 6.6, 7.2, 1.9, 'Declared assumptions\ncustomer spend and activity, diurnal and weekly\nprofile, bursts, merchant factors, prevalence', '#F6D5C9')
 xs = [0.3, 3.8, 7.3, 10.8, 14.3, 17.8]; w = 3.0
-labels = ['1. Customers\nage, location, bank,\npreferred channel,\nspend level, activity', '2. Legitimate\ntransactions\ntimestamps, bursts,\nchannel, merchant,\namount',
-          '3. Fraud injection\nchannel quotas,\nmonth x merchant weights,\ntakeover bursts,\ntechnique, amount', '4. Causal features\nprior transactions only,\nexact 24 h / 7 d\nwindows, current\nexcluded',
+labels = ['1. Customers\nage, location, bank,\npreferred channel,\nspend level, activity', '2. Legitimate\ntransactions\ntimestamps, bursts,\nchannel, merchant\n(channel-compatible),\namount',
+          '3. Fraud incidents\nincident quotas, month x\nmerchant weights, bursts,\none loss per incident,\nsplit over transactions', '4. Causal features\nprior transactions only,\nexact 24 h / 7 d\nwindows, current\nexcluded',
           '5. Burn-in\n90 days simulated\nthen discarded', '6. FraudBench-NG\n2.1 M rows\n0.1% fraud']
 cols = [TEAL] * 5 + [PURP]
 for x, t, c in zip(xs, labels, cols): box(ax, x, 2.6, w, 2.7, t, c, fs=7.5, tc='white' if c == PURP else 'black')
@@ -63,7 +63,7 @@ plt.tight_layout(); plt.savefig('figures/fig_ablation.png', dpi=200); plt.close(
 
 # ---- 4. SHAP comparison ---------------------------------------------------------
 S = json.load(open('results/shap.json'))
-order = ['Customer history', 'Amount', 'Merchant', 'Time', 'Channel, bank, location, age']; cols = [CORAL, TEAL, PURP, GOLD, GREY]
+order = ['Customer history', 'Amount', 'Time', 'Channel, bank, location, age']; cols = [CORAL, TEAL, GOLD, GREY]
 fig, ax = plt.subplots(1, 3, figsize=(11, 3.7), gridspec_kw={'width_ratios': [1.1, 1, 1]})
 left = np.zeros(2)
 for o, c in zip(order, cols):

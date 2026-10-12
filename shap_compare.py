@@ -9,7 +9,8 @@ import matplotlib; matplotlib.use('Agg'); import matplotlib.pyplot as plt
 old = pd.read_csv(sys.argv[1], low_memory=False); new = pd.read_parquet(sys.argv[2])
 old['timestamp'] = pd.to_datetime(old['timestamp'], format='%d/%m/%Y %H:%M')
 CAT = ['channel', 'merchant_category', 'bank', 'location', 'age_group']
-DROP = ['transaction_id', 'customer_id', 'timestamp', 'is_fraud', 'fraud_technique']
+DROP = ['transaction_id', 'customer_id', 'timestamp', 'is_fraud', 'fraud_technique', 'incident_id', 'is_followon',
+        'merchant_risk_score', 'merchant_category']      # merchant columns only return the generator's own assumption
 AMOUNT = {'amount', 'amount_log', 'amount_rounded'}
 HIST = {'amount_vs_mean_ratio', 'amount_sum_24h', 'amount_mean_7d', 'amount_std_7d', 'tx_count_24h', 'amount_mean_total', 'amount_std_total',
         'tx_count_total', 'channel_diversity', 'location_diversity', 'online_channel_ratio', 'velocity_score', 'composite_risk'}
@@ -18,12 +19,12 @@ def group(col):
     if col in AMOUNT: return 'Amount'
     if col in HIST: return 'Customer history'
     if col in TIME: return 'Time'
-    if col == 'merchant_risk_score' or col.startswith('merchant_category'): return 'Merchant'
     return 'Channel, bank, location, age'
 
 def run(d):
     y = d.is_fraud.values
-    X = pd.get_dummies(d.drop(columns=[c for c in DROP if c in d.columns]), columns=[c for c in CAT if c in d.columns]).astype(float)
+    Xd = d.drop(columns=[c for c in DROP if c in d.columns])
+    X = pd.get_dummies(Xd, columns=[c for c in CAT if c in Xd.columns]).astype(float)
     ti = d.timestamp.astype('int64').values; q1, q2 = np.quantile(ti, [.6, .8]); tr, te = ti < q1, ti >= q2
     rng = np.random.default_rng(0)
     idx = np.r_[np.flatnonzero(tr & (y == 1)), rng.choice(np.flatnonzero(tr & (y == 0)), 200000, replace=False)]

@@ -75,8 +75,8 @@ for name, d in DS:
 # chronological benchmark with each dataset's own feature set (random forest, class-weighted)
 def bench(d, drop):
     y = d.is_fraud.values
-    X = pd.get_dummies(d.drop(columns=[c for c in drop if c in d.columns]),
-                       columns=[c for c in ('channel', 'merchant_category', 'bank', 'location', 'age_group') if c in d.columns]).astype(float)
+    Xd = d.drop(columns=[c for c in drop if c in d.columns])
+    X = pd.get_dummies(Xd, columns=[c for c in ('channel', 'merchant_category', 'bank', 'location', 'age_group') if c in Xd.columns]).astype(float)
     ti = d.timestamp.astype('int64').values; q1, q2 = np.quantile(ti, [.6, .8]); tr, te = ti < q1, ti >= q2
     rng = np.random.default_rng(0)
     neg = rng.choice(np.flatnonzero(tr & (y == 0)), 200000, replace=False); idx = np.r_[np.flatnonzero(tr & (y == 1)), neg]
@@ -84,7 +84,9 @@ def bench(d, drop):
     p = m.predict_proba(X.values[te])[:, 1]
     return dict(roc_auc=float(roc_auc_score(y[te], p)), pr_auc=float(average_precision_score(y[te], p)), base_rate=float(y[te].mean()),
                 top_features=list(pd.Series(m.feature_importances_, index=X.columns).sort_values(ascending=False).head(5).round(3).to_dict().items()))
-BASE = ['transaction_id', 'customer_id', 'timestamp', 'is_fraud', 'fraud_technique']
+# merchant columns are left out for every dataset: in a synthetic benchmark they only return the generator's own assumption
+BASE = ['transaction_id', 'customer_id', 'timestamp', 'is_fraud', 'fraud_technique', 'incident_id', 'is_followon',
+        'merchant_risk_score', 'merchant_category']
 R['old']['rf'] = bench(old, BASE)
 if mid is not None: R['mid']['rf'] = bench(mid, BASE)
 R['new']['rf'] = bench(new, BASE)
@@ -97,7 +99,7 @@ json.dump(R, open('results/audit.json', 'w'), indent=1, default=float)
 print(json.dumps(R, indent=1, default=float))
 
 fig, ax = plt.subplots(figsize=(5.5, 3.2)); h = np.arange(24)
-for lab, d, c in [('Earlier benchmark', old, '#E76F51')] + ([('Intermediate version', mid, '#8D5FD3')] if mid is not None else []) + [('FraudBench-NG dataset', new, '#2A9D8F')]:
+for lab, d, c in [('Earlier benchmark', old, '#E76F51')] + ([('Intermediate version', mid, '#8D5FD3')] if mid is not None else []) + [('FraudBench-NG', new, '#2A9D8F')]:
     s = d.timestamp.dt.hour.value_counts(normalize=True).sort_index() * 100; ax.plot(h, s.values, 'o-', ms=3, color=c, label=lab)
 ax.axhline(100 / 24, color='grey', ls=':', lw=.8); ax.set(xlabel='hour of day', ylabel='% of transactions'); ax.legend()
 plt.tight_layout(); plt.savefig('figures/fig_audit_hours.png', dpi=200); plt.close()

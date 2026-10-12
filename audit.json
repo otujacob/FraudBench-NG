@@ -38,56 +38,56 @@
   },
   "composite_linear_r2": 0.9672772954087663,
   "rf": {
-   "roc_auc": 0.9790358541393034,
-   "pr_auc": 0.8348066797773088,
+   "roc_auc": 0.9772876078213018,
+   "pr_auc": 0.8362518170449322,
    "base_rate": 0.0017899910500447497,
    "top_features": [
     [
      "amount_log",
-     0.139
-    ],
-    [
-     "amount",
-     0.136
+     0.15
     ],
     [
      "amount_vs_mean_ratio",
-     0.133
+     0.14
+    ],
+    [
+     "amount",
+     0.138
     ],
     [
      "amount_sum_24h",
-     0.099
+     0.101
     ],
     [
      "velocity_score",
-     0.067
+     0.069
     ]
    ]
   },
   "rf_no_history": {
-   "roc_auc": 0.7242159517308229,
-   "pr_auc": 0.0058328559151242815,
+   "roc_auc": 0.7299206597743453,
+   "pr_auc": 0.005812062955625605,
    "base_rate": 0.0017899910500447497,
    "top_features": [
     [
      "amount",
-     0.182
+     0.21
     ],
     [
      "amount_log",
-     0.179
+     0.198
     ],
     [
      "hour",
-     0.046
-    ],
-    [
-     "merchant_risk_score",
-     0.045
+     0.054
     ],
     [
      "hour_sin",
-     0.043
+     0.05
+    ],
+    [
+     "hour_cos",
+     0.046
     ]
    ]
   }
@@ -129,120 +129,120 @@
    "merchant_risk_score": 0.6243231259183801
   },
   "rf": {
-   "roc_auc": 0.6784099990735195,
-   "pr_auc": 0.013389146809833236,
+   "roc_auc": 0.6367279514847879,
+   "pr_auc": 0.014292839291245895,
    "base_rate": 0.0030130971307441895,
    "top_features": [
     [
      "amount_log",
-     0.077
+     0.078
     ],
     [
      "amount_vs_mean_ratio",
-     0.071
+     0.073
     ],
     [
      "amount",
-     0.062
-    ],
-    [
-     "amount_sum_24h",
-     0.054
+     0.07
     ],
     [
      "amount_mean_7d",
-     0.054
+     0.063
+    ],
+    [
+     "amount_sum_24h",
+     0.059
     ]
    ]
   }
  },
  "new": {
-  "rows": 2102211,
-  "fraud": 2094,
-  "prevalence": 0.0009960941123417202,
-  "prevalence_vs_nibss": 117.4510270980579,
-  "share_00_06": 0.06737668102773699,
-  "hour_share_max_min": 7.3164288668320925,
-  "eta2_customer": 0.45913455982356777,
-  "interarrival_cv": 1.778131309606086,
-  "share_tx24_eq1": 0.2766002080666498,
-  "share_tx24_eq0": 0.5775695208520933,
+  "rows": 2102151,
+  "fraud": 2059,
+  "prevalence": 0.0009794729303461073,
+  "prevalence_vs_nibss": 115.49119732617108,
+  "share_00_06": 0.06738098262208567,
+  "hour_share_max_min": 7.314932547681812,
+  "eta2_customer": 0.4589187714160562,
+  "interarrival_cv": 1.778097501156304,
+  "share_tx24_eq1": 0.27661571409475344,
+  "share_tx24_eq0": 0.5775860059529501,
   "min_tx24": 0,
-  "spearman_velocity_ratio": 0.0001349269034548735,
-  "share_velocity_eq_ratio": 0.0002602022346948047,
-  "share_ratio_eq_1": 2.711430964827032e-05,
+  "spearman_velocity_ratio": -0.0007425114601955811,
+  "share_velocity_eq_ratio": 0.0002625881775381502,
+  "share_ratio_eq_1": 2.901789643084631e-05,
   "share_cust_txcount_constant": 0.0,
   "share_cust_txcount_eq_rows": 0.00456,
   "share_cust_mean_total_constant": 0.0,
   "median_prior_tx_at_first_row": 17.0,
-  "corr_merchant_score_rate": 0.9845452319656334,
-  "month_rate_max_min": 2.067731132006341,
-  "chi2_p_bank": 0.5551204767056233,
-  "chi2_p_bank_customer": 0.7350461905299073,
-  "chi2_p_location": 0.003739979689227941,
-  "chi2_p_location_customer": 0.07311767388289159,
+  "corr_merchant_score_rate": 0.9325648935473214,
+  "month_rate_max_min": 3.0366866836423103,
+  "chi2_p_bank": 0.02292642924889883,
+  "chi2_p_bank_customer": 0.5088845479765245,
+  "chi2_p_location": 0.38609098637359546,
+  "chi2_p_location_customer": 0.6257410786005035,
   "auc": {
-   "velocity_score": 0.669561823393913,
-   "amount_vs_mean_ratio": 0.6586566991690583,
-   "amount": 0.6684536058133176,
-   "tx_count_total": 0.5124215692773844,
-   "amount_std_total": 0.5329085170735285,
-   "amount_mean_total": 0.5166413760167732,
-   "amount_std_7d": 0.6139385836573614,
-   "tx_count_24h": 0.6553365649820923,
-   "merchant_risk_score": 0.578571223724776
+   "velocity_score": 0.6284361799743979,
+   "amount_vs_mean_ratio": 0.5204224158566593,
+   "amount": 0.5203622253808762,
+   "tx_count_total": 0.5276805434977696,
+   "amount_std_total": 0.5001560140027705,
+   "amount_mean_total": 0.5057633209060448,
+   "amount_std_7d": 0.5603896444206471,
+   "tx_count_24h": 0.6405158753344821,
+   "merchant_risk_score": 0.5811937353160588
   },
   "rf": {
-   "roc_auc": 0.7873221872561371,
-   "pr_auc": 0.057291419362343284,
-   "base_rate": 0.0007325606562601827,
+   "roc_auc": 0.7551715522771443,
+   "pr_auc": 0.015979590528110287,
+   "base_rate": 0.0006588477062823626,
    "top_features": [
     [
      "amount_vs_mean_ratio",
-     0.116
+     0.129
     ],
     [
      "amount_log",
-     0.065
-    ],
-    [
-     "velocity_score",
-     0.063
+     0.066
     ],
     [
      "amount",
-     0.058
+     0.066
     ],
     [
-     "amount_sum_24h",
-     0.054
+     "amount_mean_total",
+     0.06
+    ],
+    [
+     "amount_std_total",
+     0.055
     ]
    ]
   },
   "rf_no_history": {
-   "roc_auc": 0.6912757363549966,
-   "pr_auc": 0.002843305794752597,
-   "base_rate": 0.0007325606562601827,
+   "roc_auc": 0.6247486502671215,
+   "pr_auc": 0.005896675380961337,
+   "base_rate": 0.0006588477062823626,
    "top_features": [
     [
-     "amount",
-     0.137
+     "amount_log",
+     0.141
     ],
     [
-     "amount_log",
-     0.134
+     "amount",
+     0.141
     ],
     [
      "hour_sin",
-     0.062
+     0.076
     ],
     [
      "hour_cos",
-     0.057
+     0.069
     ],
     [
-     "merchant_risk_score",
-     0.047
+     "day_sin",
+     0.056
     ]
    ]
   }

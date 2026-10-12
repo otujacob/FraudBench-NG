@@ -1,22 +1,22 @@
 # FraudBench-NG: a NIBSS-calibrated synthetic dataset and generator for Nigerian inter-bank fraud detection
 
-Generator, validation code and benchmark for a synthetic, transaction-level dataset of Nigerian inter-bank payments with fraud. The fraud channel mix, monthly profile, technique mix and mean loss per case follow the **2023 NIBSS Annual Fraud Landscape**. Every other parameter is declared as an assumption in the paper (Table "provenance") and in the code (`[ASSUMED]` comments in `generate_dataset.py`).
+Generator, validation code and benchmark for a synthetic, transaction-level dataset of Nigerian inter-bank payments with fraud. The fraud channel mix, monthly profile, technique mix and mean loss per case follow the **2023 NIBSS Annual Fraud Landscape**. Fraud is generated as *incidents* (NIBSS counts and loss are per case): one loss per incident, split over its transactions. Every other parameter is declared as an assumption in the paper (Table "provenance") and in the code (`[ASSUMED]` comments in `generate_dataset.py`).
 
-> **Read this first.** This is synthetic data. We did not have access to real NIBSS transaction records, so nothing here shows that a model trained on this data will work on real transactions. Channel, monthly and technique profiles match NIBSS *by construction*. Fraud prevalence is set to 0.1%, about 118x the real national rate by volume, so that the data are usable for benchmarking.
+> **Read this first.** This is synthetic data. We did not have access to real NIBSS transaction records, so nothing here shows that a model trained on this data will work on real transactions. Channel, monthly and technique profiles match NIBSS *by construction*. Fraud prevalence is set to 0.1%, about 115x the real national rate by volume, so that the data are usable for benchmarking. FraudBench-NG is meant to be *transparent, auditable and assumption-aware*, not realistic in every detail.
 
 Paper: *A NIBSS-Calibrated Synthetic Dataset for Nigerian Inter-Bank Fraud Detection* (Otu Jacob, Colin Kuka, Adam Knowles; Wrexham University). Citation details will be added on publication.
 
 ## Why this exists
 
-An audit of an earlier synthetic NIBSS-calibrated benchmark (our own) found structural artefacts and temporal leakage: customer aggregates computed over the whole year, the current transaction inside its own baselines, a velocity score duplicating the amount ratio, a redundant composite score and an incoherent merchant score. A random forest scored PR-AUC 0.83 on it, falling to 0.006 without customer-history features. This repository holds FraudBench-NG, a new transparent parametric generator, and the validation code; see the paper's audit section.
+An audit of an earlier synthetic NIBSS-calibrated benchmark (our own) found structural artefacts and temporal leakage: customer aggregates computed over the whole year, the current transaction inside its own baselines, a velocity score duplicating the amount ratio, a redundant composite score and an incoherent merchant score. A random forest scored PR-AUC 0.84 on it, falling to 0.006 without customer-history features. This repository holds FraudBench-NG, a new transparent parametric generator, and the validation code; see the paper's audit section.
 
 ## What you get
 
 | Property | Value |
 |---|---|
-| Rows | 2,102,211 transactions, 1 Jan to 31 Dec 2023 |
+| Rows | 2,102,151 transactions, 1 Jan to 31 Dec 2023 |
 | Customers | 25,000 (fixed age group, location, bank, preferred channel, spending level) |
-| Fraud | 2,094 (0.0996%) |
+| Fraud | 2,059 rows (0.098%) in 1,261 incidents; 39% of fraud rows are follow-ons |
 | Channels | ATM, E-commerce, Internet banking, Mobile, POS, Web |
 | Format | Parquet (about 160 MB) |
 
@@ -44,10 +44,11 @@ Run from the repository root, in this order:
 
 ```bash
 python generate_dataset.py --out data     # the dataset
-python compare.py                         # LR / RF / XGBoost benchmark, bootstrap CIs -> results/models.json
+python compare.py                         # LR / RF / XGBoost benchmark, customer- and incident-clustered bootstrap CIs, first-event vs follow-on -> results/models.json
+python compare.py --with-merchant         # same, with merchant columns added -> results/models_with_merchant.json
 python validate.py                        # tests and figures -> results/validation.json, figures/
-python seeds.py                           # stability over 5 seeds -> results/seeds.json
-python sensitivity.py                     # merchant, takeover (phi), fraud-dispersion and burst sensitivity (about 30 minutes) -> results/sensitivity.json
+python seeds.py                           # stability over 10 seeds -> results/seeds.json
+python sensitivity.py                     # merchant, takeover (phi), fraud-dispersion and burst sensitivity (7 settings x 10 seeds, about 1-2 hours) -> results/sensitivity.json
 python audit.py earlier.csv data/nibss_synthetic_fraud.parquet [intermediate.csv]   # audit of the earlier benchmark -> results/audit.json
 python shap_compare.py earlier.csv data/nibss_synthetic_fraud.parquet   # TreeSHAP comparison -> results/shap.json
 python make_figures.py                    # architecture, causal, ablation, SHAP figures
@@ -62,7 +63,7 @@ python make_figures.py                    # architecture, causal, ablation, SHAP
 | File | Purpose |
 |---|---|
 | `generate_dataset.py` | The generator (all logic lives here) |
-| `compare.py` | Chronological split; class-weighted logistic regression, random forest, XGBoost; PR-AUC, recall at fixed false-positive rate, precision in top 1%, bootstrap intervals |
+| `compare.py` | Chronological split; class-weighted logistic regression, random forest, XGBoost; PR-AUC, recall at fixed false-positive rate, precision in top 1%, customer- and incident-clustered bootstrap intervals; results by first event and follow-on |
 | `validate.py` | Comparison with NIBSS, real-data properties, statistical tests, causality brute force, figures |
 | `seeds.py` | Repeats generation across seeds to check stability |
 | `audit.py` | Audit of an earlier synthetic benchmark (leakage, redundancy, realism) with the same measurements as FraudBench-NG |
@@ -78,10 +79,10 @@ python make_figures.py                    # architecture, causal, ablation, SHAP
 |---|---|
 | Identifiers | `transaction_id`, `customer_id`, `timestamp` |
 | Transaction | `amount`, `channel`, `bank`, `merchant_category`, `location`, `age_group` |
-| Labels | `is_fraud`; `fraud_technique` (fraud rows only, **do not use as a feature**) |
+| Labels and bookkeeping | `is_fraud`; `fraud_technique` (fraud rows only); `incident_id` (fraud rows; **none of these three are features**); `is_followon` (1 for follow-on rows of an incident) |
 | Amount | `amount_log`, `amount_vs_mean_ratio` |
 | Customer history (prior transactions only) | `amount_sum_24h`, `amount_mean_7d`, `amount_std_7d`, `tx_count_24h`, `amount_mean_total`, `amount_std_total`, `tx_count_total`, `channel_diversity`, `online_channel_ratio`, `velocity_score` |
-| Context | `merchant_risk_score`, `is_peak_hour`, `hour_sin/cos`, `day_sin/cos`, `month_sin/cos` |
+| Context | `merchant_risk_score` (**assumption, not a default feature**), `is_peak_hour`, `hour_sin/cos`, `day_sin/cos`, `month_sin/cos` |
 
 First-ever transaction of a customer: ratio = 1, velocity = 0, mean = amount.
 
@@ -89,7 +90,10 @@ First-ever transaction of a customer: ratio = 1, velocity = 0, mean = amount.
 
 - **Split by time, not at random.** The paper uses train to 7 Aug, validation to 18 Oct, test to 31 Dec.
 - **Do not report accuracy or a fixed 0.5 threshold.** At 0.1% prevalence they are uninformative. Use PR-AUC, recall at a fixed false-positive rate, or precision in the top 1% of scores, and class weighting.
-- **Exclude `fraud_technique`** (it exists only for fraud rows). Consider also excluding **`tx_count_total`**: history length grows through the year (median prior transactions about 56 in training vs 125 in test), so it carries no fraud signal (ROC-AUC 0.49) but differs between splits. `compare.py` keeps it to match the paper's table; `demo.ipynb` drops it.
+- **Use `generate_dataset.model_matrix(df)`** for the default feature set: it drops identifiers, `is_fraud`, `fraud_technique`, `incident_id`, `is_followon`, `merchant_category` and `merchant_risk_score`. The merchant score is the generator's own assumption, so a model that uses it learns the assumption (`include_merchant=True` / `compare.py --with-merchant` to test).
+- **Report first events and follow-ons separately** (`is_followon`); follow-ons are shaped by the assumed takeover-burst probability (0.4) and drive much of the benchmark difficulty.
+- **Bootstrap by customer** (or by incident for fraud-specific metrics), not by row.
+- **Do not use `fraud_technique`** as a feature (it exists only for fraud rows). Consider also excluding **`tx_count_total`**: history length grows through the year (median prior transactions about 56 in training vs 125 in test), so it carries no fraud signal (ROC-AUC 0.49) but differs between splits. `compare.py` keeps it to match the paper's table; `demo.ipynb` drops it.
 
 ## Calibration data
 
@@ -97,14 +101,14 @@ Fraud channel, month and technique profiles and mean loss per case come from the
 
 ## What is not modelled
 
-Merchant preferences of customer groups; relationships among location, bank and channel; amount-merchant relationships; regular (recurring) payments; individual versus business customers; demographic and geographic fraud patterns (reported Lagos concentration, victims aged 40+); time-of-day of fraud; seasonality; customer churn; devices, locations and beneficiaries; fraud rings; detection and label delay. Age group, location and bank are inert attributes. `merchant_risk_score` is a rescaling of the generator's own assumed merchant factors, not independent evidence of merchant risk. Full list and consequences: paper, Discussion (Table "Structure not modelled"); every parameter and its justification: paper, Table "Register of design choices".
+Merchant preferences of customer groups (merchants are drawn uniformly within a simple channel-compatibility table); relationships among location, bank and channel; amount-merchant relationships; regular (recurring) payments; individual versus business customers; demographic and geographic fraud patterns (reported Lagos concentration, victims aged 40+); time-of-day of fraud; seasonality; customer churn; devices, locations and beneficiaries; fraud rings; detection and label delay. Age group, location and bank are inert attributes. `merchant_risk_score` is a rescaling of the generator's own assumed merchant factors, not independent evidence of merchant risk. Full list and consequences: paper, Discussion (Table "Structure not modelled"); every parameter and its justification: paper, Table "Register of design choices".
 
 ## Known limitations
 
 - No validation against real transactions; many parameters (customer mix, diurnal and weekly shape, burst parameters, merchant factors) are assumptions.
-- Prevalence is about 118x enriched. Within-day timing of fraud is not modelled.
+- Prevalence is about 115x enriched. The takeover-burst probability (0.4), the loss split (Dirichlet 2) and the channel-merchant table are assumptions. Within-day timing of fraud is not modelled.
 - Residual history drift described above.
-- Single-feature separability is modest (maximum ROC-AUC about 0.67) and benchmark scores are low (PR-AUC 0.03 to 0.07 against 0.0007 for random guessing); confidence intervals between models overlap.
+- Single-feature separability is modest (maximum ROC-AUC about 0.64) and benchmark scores are low (PR-AUC 0.016 to 0.036 against 0.00066 for random guessing); customer-clustered intervals are wide and overlap, so models cannot be ranked.
 
 See the paper's Discussion section for the full list.
 
