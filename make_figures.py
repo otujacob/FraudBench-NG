@@ -1,4 +1,4 @@
-"""Schematic and summary figures for the paper: generator architecture, causal-feature diagram, ablation. Run after audit.py."""
+"""Schematic and summary figures for the paper: generator architecture, causal-feature diagram, SHAP attribution. Run after shap_compare.py."""
 import generate_dataset as G
 import os, json
 os.makedirs('figures', exist_ok=True)
@@ -47,35 +47,15 @@ ax[1].plot([3.7, tx[cur] - 0.15], [-0.95, -0.95], color=BLUE, lw=3); ax[1].text(
 ax[1].plot([4.9, tx[cur] - 0.15], [-1.3, -1.3], color=PURP, lw=3); ax[1].text(4.8, -1.6, 'prior 24 h (86,400 s)', ha='right', fontsize=7.5, color=PURP)
 plt.tight_layout(); plt.savefig('figures/fig_causal.png', dpi=200); plt.close()
 
-# ---- 3. ablation ----------------------------------------------------------------
-A = json.load(open('results/audit.json'))
-fig, ax = plt.subplots(figsize=(6.4, 3.4)); g = ['Earlier\nbenchmark', 'Intermediate\nversion', 'FraudBench-NG']; x = np.arange(3); w = 0.34
-full = [A['old']['rf']['pr_auc'], A['mid']['rf']['pr_auc'], A['new']['rf']['pr_auc']]
-nohist = [A['old']['rf_no_history']['pr_auc'], np.nan, A['new']['rf_no_history']['pr_auc']]
-base = [A['old']['rf']['base_rate'], A['mid']['rf']['base_rate'], A['new']['rf']['base_rate']]
-b1 = ax.bar(x - w / 2, full, w, color=CORAL, label='all features'); b2 = ax.bar(x + w / 2, nohist, w, color=TEAL, label='without customer-history features')
-for i in range(3):
-    ax.hlines(base[i], i - 0.45, i + 0.45, color='black', lw=1.2, ls='--', label='no-skill (base rate)' if i == 0 else None)
-for b in list(b1) + list(b2):
-    h = b.get_height()
-    if not np.isnan(h): ax.text(b.get_x() + b.get_width() / 2, h * 1.15, f'{h:.3f}', ha='center', fontsize=7.5)
-ax.set_yscale('log'); ax.set_ylim(5e-4, 3); ax.set_xticks(x); ax.set_xticklabels(g); ax.set_ylabel('PR-AUC (log scale)'); ax.legend(fontsize=7, loc='upper right')
-plt.tight_layout(); plt.savefig('figures/fig_ablation.png', dpi=200); plt.close()
-
-# ---- 4. SHAP comparison ---------------------------------------------------------
-S = json.load(open('results/shap.json'))
-order = ['Customer history', 'Amount', 'Time', 'Channel, bank, location, age']; cols = [CORAL, TEAL, GOLD, GREY]
-fig, ax = plt.subplots(1, 3, figsize=(12.5, 3.9), gridspec_kw={'width_ratios': [1.1, 1, 1]})
-left = np.zeros(2)
-for o, c in zip(order, cols):
-    v = np.array([S['earlier']['group_share'].get(o, 0), S['fraudbench']['group_share'].get(o, 0)]) * 100
-    ax[0].barh(['Earlier\nbenchmark', 'FraudBench-NG'], v, left=left, color=c, label=o)
-    for j in range(2):
-        if v[j] > 7: ax[0].text(left[j] + v[j] / 2, j, f'{v[j]:.0f}', ha='center', va='center', fontsize=7.5, color='white' if c in (CORAL, PURP) else 'black')
-    left += v
-ax[0].set(xlabel='share of mean |SHAP| (%)', xlim=(0, 100), title='(a) importance by feature group'); ax[0].legend(fontsize=6.5, loc='upper center', bbox_to_anchor=(.5, -.28), ncol=2, frameon=False)
-for a, k, t in ((ax[1], 'earlier', '(b) earlier benchmark: top 8'), (ax[2], 'fraudbench', '(c) FraudBench-NG: top 8')):
-    top = S[k]['top']; names = [G.label(n) for n in list(top)[::-1]]; vals = np.array([top[n] for n in list(top)[::-1]]); vals = vals / vals.max()
-    a.barh(names, vals, color=CORAL if k == 'earlier' else TEAL); a.tick_params(axis='y', labelsize=7); a.set(xlabel='mean |SHAP|, relative to top feature', title=t, xlim=(0, 1.05))
+# ---- 3. SHAP attribution ---------------------------------------------------------
+S = json.load(open('results/shap.json'))['fraudbench']
+order = ['Customer history', 'Channel, bank, location, age', 'Time', 'Amount']; cols = [CORAL, GREY, GOLD, TEAL]
+fig, ax = plt.subplots(1, 2, figsize=(10.5, 3.4), gridspec_kw={'width_ratios': [1, 1.15]})
+v = [S['group_share'].get(o, 0) * 100 for o in order]
+ax[0].barh(order[::-1], v[::-1], color=cols[::-1])
+for i, x in enumerate(v[::-1]): ax[0].text(x + 1, i, f'{x:.0f}%', va='center', fontsize=8)
+ax[0].set(xlabel='share of mean |SHAP| (%)', xlim=(0, 70), title='(a) importance by feature group'); ax[0].tick_params(axis='y', labelsize=8)
+top = S['top']; names = [G.label(n) for n in list(top)[::-1]]; vals = np.array([top[n] for n in list(top)[::-1]]); vals = vals / vals.max()
+ax[1].barh(names, vals, color=TEAL); ax[1].tick_params(axis='y', labelsize=8); ax[1].set(xlabel='mean |SHAP|, relative to top feature', title='(b) eight largest features', xlim=(0, 1.05))
 plt.tight_layout(); plt.savefig('figures/fig_shap.png', dpi=200, bbox_inches='tight'); plt.close()
 print('figures written')

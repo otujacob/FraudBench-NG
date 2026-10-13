@@ -8,7 +8,7 @@ Paper: *A NIBSS-Calibrated Synthetic Dataset for Nigerian Inter-Bank Fraud Detec
 
 ## Why this exists
 
-An audit of an earlier synthetic NIBSS-calibrated benchmark (our own) found structural artefacts and temporal leakage: customer aggregates computed over the whole year, the current transaction inside its own baselines, a velocity score duplicating the amount ratio, a redundant composite score and an incoherent merchant score. A random forest scored PR-AUC 0.84 on it, falling to 0.006 without customer-history features. This repository holds FraudBench-NG, a new transparent parametric generator, and the validation code; see the paper's audit section.
+Synthetic fraud benchmarks can look rigorous and still hand the model the answer, through features computed over a customer's whole year, windows that contain the transaction being judged, redundant scores, or the generator's own assumptions used as inputs. FraudBench-NG is a transparent parametric generator designed to avoid these: fraud status and amounts are fixed first, every behavioural feature uses only prior transactions, and every parameter is marked as NIBSS or assumed. This repository holds the generator and the validation code.
 
 ## What you get
 
@@ -49,12 +49,10 @@ python compare.py --with-merchant         # same, with merchant columns added ->
 python validate.py                        # tests and figures -> results/validation.json, figures/
 python seeds.py                           # stability over 10 seeds -> results/seeds.json
 python sensitivity.py                     # merchant, takeover (phi), fraud-dispersion and burst sensitivity (7 settings x 10 seeds, about 1-2 hours) -> results/sensitivity.json
-python audit.py earlier.csv data/nibss_synthetic_fraud.parquet [intermediate.csv]   # audit of the earlier benchmark -> results/audit.json
-python shap_compare.py earlier.csv data/nibss_synthetic_fraud.parquet   # TreeSHAP comparison -> results/shap.json
-python make_figures.py                    # architecture, causal, ablation, SHAP figures
+python checks.py data/nibss_synthetic_fraud.parquet   # leakage, redundancy and history-ablation checks -> results/checks.json
+python shap_compare.py data/nibss_synthetic_fraud.parquet   # TreeSHAP attribution -> results/shap.json
+python make_figures.py                    # architecture, causal and SHAP figures
 ```
-
-`audit.py` needs the earlier benchmark's CSV, which is not part of this repository.
 
 `validate.py` needs the output of `compare.py`, so run them in that order.
 
@@ -66,10 +64,10 @@ python make_figures.py                    # architecture, causal, ablation, SHAP
 | `compare.py` | Chronological split; class-weighted logistic regression, random forest, XGBoost; PR-AUC, recall at fixed false-positive rate, precision in top 1%, customer- and incident-clustered bootstrap intervals; results by first event and follow-on |
 | `validate.py` | Comparison with NIBSS, real-data properties, statistical tests, causality brute force, figures |
 | `seeds.py` | Repeats generation across seeds to check stability |
-| `audit.py` | Audit of an earlier synthetic benchmark (leakage, redundancy, realism) with the same measurements as FraudBench-NG |
+| `checks.py` | Leakage, redundancy and customer-history ablation checks on FraudBench-NG |
 | `sensitivity.py` | Regenerates under alternative merchant factors, takeover continuation, fraud dispersion and burst settings |
-| `shap_compare.py` | TreeSHAP comparison of the earlier benchmark and FraudBench-NG (needs the earlier CSV) |
-| `make_figures.py` | Architecture, causal-feature, ablation and SHAP figures from the results JSONs |
+| `shap_compare.py` | TreeSHAP attribution of XGBoost trained on FraudBench-NG |
+| `make_figures.py` | Architecture, causal-feature and SHAP figures from the results JSONs |
 | `demo.ipynb` | Walk-through notebook |
 | `figures/`, `results/` | Outputs reported in the paper |
 

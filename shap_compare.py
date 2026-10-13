@@ -1,13 +1,12 @@
-"""TreeSHAP comparison of an XGBoost model trained on the earlier benchmark and on FraudBench-NG.
-usage: python shap_compare.py earlier.csv fraudbench.parquet   -> results/shap.json (plotted by make_figures.py)"""
+"""TreeSHAP attribution of an XGBoost model trained on FraudBench-NG.
+usage: python shap_compare.py fraudbench.parquet   -> results/shap.json (plotted by make_figures.py)"""
 import os, sys, json
 os.makedirs('results', exist_ok=True); os.makedirs('figures', exist_ok=True)
 import numpy as np, pandas as pd, shap, xgboost as xgb
 from sklearn.metrics import average_precision_score, roc_auc_score
 import matplotlib; matplotlib.use('Agg'); import matplotlib.pyplot as plt
 
-old = pd.read_csv(sys.argv[1], low_memory=False); new = pd.read_parquet(sys.argv[2])
-old['timestamp'] = pd.to_datetime(old['timestamp'], format='%d/%m/%Y %H:%M')
+new = pd.read_parquet(sys.argv[1])
 CAT = ['channel', 'merchant_category', 'bank', 'location', 'age_group']
 DROP = ['transaction_id', 'customer_id', 'timestamp', 'is_fraud', 'fraud_technique', 'incident_id', 'is_followon',
         'merchant_risk_score', 'merchant_category']      # merchant columns only return the generator's own assumption
@@ -39,6 +38,6 @@ def run(d):
     return dict(pr_auc=float(average_precision_score(y[te], pt)), roc_auc=float(roc_auc_score(y[te], pt)), base_rate=float(y[te].mean()),
                 group_share=g.round(4).to_dict(), top=imp.sort_values(ascending=False).head(8).round(4).to_dict(),
                 n_fraud=int((y[samp] == 1).sum()), n_rows=int(len(samp)))
-R = {'earlier': run(old), 'fraudbench': run(new)}
+R = {'fraudbench': run(new)}
 json.dump(R, open('results/shap.json', 'w'), indent=1)
 print(json.dumps(R, indent=1))

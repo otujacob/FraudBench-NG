@@ -1,6 +1,6 @@
-"""Audit of an earlier synthetic NIBSS benchmark (the authors' first release) against FraudBench-NG.
-usage: python audit.py earlier.csv fraudbench_ng.parquet [intermediate.csv]
-Writes results/audit.json and figures/fig_audit_hours.png"""
+"""Leakage, redundancy and history-ablation checks on FraudBench-NG.
+usage: python checks.py fraudbench_ng.parquet
+Writes results/checks.json"""
 import os, sys, json
 os.makedirs('results', exist_ok=True); os.makedirs('figures', exist_ok=True)
 import numpy as np, pandas as pd
@@ -10,11 +10,7 @@ from sklearn.ensemble import RandomForestClassifier
 from sklearn.linear_model import LinearRegression
 import matplotlib; matplotlib.use('Agg'); import matplotlib.pyplot as plt
 
-old = pd.read_csv(sys.argv[1], low_memory=False); new = pd.read_parquet(sys.argv[2])
-old['timestamp'] = pd.to_datetime(old['timestamp'], format='%d/%m/%Y %H:%M')
-mid = None
-if len(sys.argv) > 3:
-    mid = pd.read_csv(sys.argv[3], low_memory=False); mid['timestamp'] = pd.to_datetime(mid['timestamp'])
+new = pd.read_parquet(sys.argv[1])
 R = {}
 NIBSS_RATIO = 95620 / 11274704942                      # fraud cases / transactions, 2023
 
@@ -29,7 +25,7 @@ def eta2(d):
     within = ((la - la.groupby(d.customer_id).transform('mean')) ** 2).sum()
     return float(1 - within / tot)
 
-DS = [('old', old)] + ([('mid', mid)] if mid is not None else []) + [('new', new)]
+DS = [('fraudbench', new)]
 for name, d in DS:
     r = {}
     hr = d.timestamp.dt.hour
@@ -72,7 +68,7 @@ for name, d in DS:
         r['composite_linear_r2'] = float(LinearRegression().fit(X, d.composite_risk).score(X, d.composite_risk))
     R[name] = r
 
-# chronological benchmark with each dataset's own feature set (random forest, class-weighted)
+# chronological benchmark (random forest, class-weighted)
 def bench(d, drop):
     y = d.is_fraud.values
     Xd = d.drop(columns=[c for c in drop if c in d.columns])
@@ -87,19 +83,10 @@ def bench(d, drop):
 # merchant columns are left out for every dataset: in a synthetic benchmark they only return the generator's own assumption
 BASE = ['transaction_id', 'customer_id', 'timestamp', 'is_fraud', 'fraud_technique', 'incident_id', 'is_followon',
         'merchant_risk_score', 'merchant_category']
-R['old']['rf'] = bench(old, BASE)
-if mid is not None: R['mid']['rf'] = bench(mid, BASE)
-R['new']['rf'] = bench(new, BASE)
-# ablation on the earlier benchmark: transaction-level features only (no customer-history aggregates)
+R['fraudbench']['rf'] = bench(new, BASE)
+# ablation: transaction-level features only (no customer-history aggregates)
 HIST = ['tx_count_24h', 'amount_sum_24h', 'amount_mean_7d', 'amount_std_7d', 'tx_count_total', 'amount_mean_total', 'amount_std_total',
         'channel_diversity', 'location_diversity', 'amount_vs_mean_ratio', 'online_channel_ratio', 'velocity_score', 'composite_risk']
-R['old']['rf_no_history'] = bench(old, BASE + HIST)
-R['new']['rf_no_history'] = bench(new, BASE + [h for h in HIST if h in new.columns])
-json.dump(R, open('results/audit.json', 'w'), indent=1, default=float)
+R['fraudbench']['rf_no_history'] = bench(new, BASE + [h for h in HIST if h in new.columns])
+json.dump(R, open('results/checks.json', 'w'), indent=1, default=float)
 print(json.dumps(R, indent=1, default=float))
-
-fig, ax = plt.subplots(figsize=(5.5, 3.2)); h = np.arange(24)
-for lab, d, c in [('Earlier benchmark', old, '#E76F51')] + ([('Intermediate version', mid, '#8D5FD3')] if mid is not None else []) + [('FraudBench-NG', new, '#2A9D8F')]:
-    s = d.timestamp.dt.hour.value_counts(normalize=True).sort_index() * 100; ax.plot(h, s.values, 'o-', ms=3, color=c, label=lab)
-ax.axhline(100 / 24, color='grey', ls=':', lw=.8); ax.set(xlabel='hour of day', ylabel='% of transactions'); ax.legend()
-plt.tight_layout(); plt.savefig('figures/fig_audit_hours.png', dpi=200); plt.close()
