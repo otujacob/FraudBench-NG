@@ -74,6 +74,7 @@ FRAUD_SIGMA = 0.9                                                  # [ASSUMED]
 BURST_PROB = 0.25      # [ASSUMED] prob. a legit tx follows the previous one within minutes
 BURST_MEAN_S = 900.0   # [ASSUMED]
 FRAUD_FOLLOW_P = 0.40  # [ASSUMED] prob. that a fraud event is followed by another (takeover bursts)
+FRAUD_SPLIT = True        # ablation switch: False gives every row of an incident the full incident loss (not used for the release)
 FRAUD_SPLIT_ALPHA = 2.0  # [ASSUMED] an incident's loss is split across its transactions in Dirichlet(alpha) proportions
 WARM_DAYS = 90         # burn-in simulated before 1 Jan 2023 and discarded, so that history features
                        # are on comparable footing in every part of the released year
@@ -227,8 +228,12 @@ def generate(n_customers=25000, prevalence=0.001, seed=42, drop_burnin=True,
     tot = g0 + np.bincount(inc_ex, weights=g1, minlength=n_inc)
     fraud[init] = True
     tech[init] = rng.choice(TECHNIQUES, n_inc, p=tp)
-    amt[init_idx] = np.maximum(loss * g0 / tot, 1.0)
-    e_amt = np.maximum(loss[inc_ex] * g1 / tot[inc_ex], 1.0)
+    if FRAUD_SPLIT:
+        amt[init_idx] = np.maximum(loss * g0 / tot, 1.0)
+        e_amt = np.maximum(loss[inc_ex] * g1 / tot[inc_ex], 1.0)
+    else:                                                           # ablation only: full incident loss on every row
+        amt[init_idx] = np.maximum(loss, 1.0)
+        e_amt = np.maximum(loss[inc_ex], 1.0)
     e_ch, e_tech = ch[ridx], tech[ridx]
     inc = np.full(N, -1); inc[init_idx] = np.arange(n_inc)
     cid = np.r_[cid, cid[ridx]]; t = np.r_[t, t_ex]

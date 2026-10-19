@@ -59,3 +59,28 @@ top = S['top']; names = [G.label(n) for n in list(top)[::-1]]; vals = np.array([
 ax[1].barh(names, vals, color=TEAL); ax[1].tick_params(axis='y', labelsize=8); ax[1].set(xlabel='mean |SHAP|, relative to top feature', title='(b) eight largest features', xlim=(0, 1.05))
 plt.tight_layout(); plt.savefig('figures/fig_shap.png', dpi=200, bbox_inches='tight'); plt.close()
 print('figures written')
+
+# ---- 4. phi ablation: why is PR-AUC higher at phi = 0 than at phi = 0.4? -----------------------------
+import os
+if os.path.exists('results/phi_experiments.json'):
+    P = json.load(open('results/phi_experiments.json')); ps = P['per_seed']
+    V = [('phi0>phi0', 'phi0', '$\\phi=0$'), ('phi04>phi04', 'phi04', '$\\phi=0.4$'), ('phi04_sameinc>phi04_sameinc', 'phi04_sameinc', '$\\phi=0.4$\nsame no. of\nincidents'),
+         ('phi04_nosplit>phi04_nosplit', 'phi04_nosplit', '$\\phi=0.4$\nfull loss\nper row'), ('phi07>phi07', 'phi07', '$\\phi=0.7$')]
+    COL = [TEAL, CORAL, GOLD, PURP, BLUE]
+    fig, ax = plt.subplots(1, 3, figsize=(13, 3.7))
+    def lift(s, cell, key):
+        c = s['cells'][cell]; n_test = c['n_fraud'] / c['base']
+        return c[key] / (c['base'] if key == 'pr_auc' else c['n_first'] / n_test)
+    for a, key, ttl in ((ax[0], 'pr_auc', '(a) PR-AUC lift, all fraud rows'), (ax[1], 'pr_first', '(b) PR-AUC lift, first fraud events only')):
+        for i, (cell, _, lab) in enumerate(V):
+            v = np.array([lift(s, cell, key) for s in ps]); a.bar(i, v.mean(), color=COL[i], alpha=.85)
+            a.errorbar(i, v.mean(), v.std(ddof=1) / np.sqrt(len(v)), color='k', capsize=3, lw=1)
+            a.scatter(np.full(len(v), i) + np.random.default_rng(i).uniform(-.18, .18, len(v)), v, s=7, color='k', alpha=.45, zorder=3)
+        a.set_xticks(range(len(V))); a.set_xticklabels([l for *_, l in V], fontsize=7); a.set_title(ttl, fontsize=9)
+        a.set_ylabel('PR-AUC / base rate (mean of 10 seeds; bars: s.e.)', fontsize=7)
+    F = P['features']
+    for i, (_, f, _) in enumerate(V):
+        m, s_ = F[f]['auc_ratio_first']; ax[2].bar(i, m, color=COL[i], alpha=.85); ax[2].errorbar(i, m, s_ / np.sqrt(len(ps)), color='k', capsize=3, lw=1)
+    ax[2].axhline(.5, color='grey', ls=':', lw=.8); ax[2].set_ylim(.4, .8); ax[2].set_xticks(range(len(V))); ax[2].set_xticklabels([l for *_, l in V], fontsize=7)
+    ax[2].set_title('(c) ROC-AUC of relative amount, first events', fontsize=9); ax[2].set_ylabel('ROC-AUC', fontsize=7.5)
+    plt.tight_layout(); plt.savefig('figures/fig_phi_ablation.png', dpi=200, bbox_inches='tight'); plt.close(); print('phi figure written')

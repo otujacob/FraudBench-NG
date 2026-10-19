@@ -51,7 +51,10 @@ python seeds.py                           # stability over 10 seeds -> results/s
 python sensitivity.py                     # merchant, takeover (phi), fraud-dispersion and burst sensitivity (7 settings x 10 seeds, about 1-2 hours) -> results/sensitivity.json
 python checks.py data/nibss_synthetic_fraud.parquet   # leakage, redundancy and history-ablation checks -> results/checks.json
 python shap_compare.py data/nibss_synthetic_fraud.parquet   # TreeSHAP attribution -> results/shap.json
-python make_figures.py                    # architecture, causal and SHAP figures
+python phi_experiments.py                 # train at one takeover probability, test at another; phi=0 vs 0.4 ablation (about 1 hour) -> results/phi_experiments.json
+python mix_scenarios.py                   # alternative legitimate channel mixes -> results/mix_scenarios.json
+python alerts.py                          # alert burden and detection timing from the saved test scores -> results/alerts.json
+python make_figures.py                    # architecture, causal, SHAP and phi-ablation figures
 ```
 
 `validate.py` needs the output of `compare.py`, so run them in that order.
@@ -66,6 +69,9 @@ python make_figures.py                    # architecture, causal and SHAP figure
 | `seeds.py` | Repeats generation across seeds to check stability |
 | `checks.py` | Leakage, redundancy and customer-history ablation checks on FraudBench-NG |
 | `sensitivity.py` | Regenerates under alternative merchant factors, takeover continuation, fraud dispersion and burst settings |
+| `phi_experiments.py` | Cross-assumption transfer (train at phi=0.4, test at 0 and 0.7) and the phi=0 vs 0.4 ablation |
+| `mix_scenarios.py` | Sensitivity to the assumed legitimate channel mix |
+| `alerts.py` | False alerts per fraud caught and how early incidents are flagged |
 | `shap_compare.py` | TreeSHAP attribution of XGBoost trained on FraudBench-NG |
 | `make_figures.py` | Architecture, causal-feature and SHAP figures from the results JSONs |
 | `demo.ipynb` | Walk-through notebook |

@@ -1,23 +1,23 @@
 {
  "fraudbench": {
-  "pr_auc": 0.018174849180021296,
-  "roc_auc": 0.717395705123009,
+  "pr_auc": 0.01665468175931663,
+  "roc_auc": 0.7316844361812049,
   "base_rate": 0.0006588477062823626,
   "group_share": {
-   "Amount": 0.03880000114440918,
-   "Channel, bank, location, age": 0.2606000006198883,
-   "Customer history": 0.5584999918937683,
-   "Time": 0.1421000063419342
+   "Amount": 0.039000000804662704,
+   "Channel, bank, location, age": 0.2578999996185303,
+   "Customer history": 0.5680999755859375,
+   "Time": 0.13500000536441803
   },
   "top": {
-   "amount_vs_mean_ratio": 0.5623999834060669,
-   "tx_count_total": 0.3098999857902527,
-   "amount_mean_total": 0.2750000059604645,
-   "channel_ECOM": 0.2257000058889389,
-   "tx_count_24h": 0.2151000052690506,
-   "month_sin": 0.19760000705718994,
-   "channel_IB": 0.18799999356269836,
-   "amount_std_total": 0.17710000276565552
+   "amount_vs_mean_ratio": 0.5570999979972839,
+   "tx_count_total": 0.29580000042915344,
+   "amount_mean_total": 0.2687000036239624,
+   "tx_count_24h": 0.23880000412464142,
+   "channel_ECOM": 0.21250000596046448,
+   "month_sin": 0.19949999451637268,
+   "amount_std_total": 0.1873999983072281,
+   "amount_sum_24h": 0.1754000037908554
   },
   "n_fraud": 277,
   "n_rows": 4277

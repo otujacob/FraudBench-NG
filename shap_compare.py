@@ -1,8 +1,9 @@
-"""TreeSHAP attribution of an XGBoost model trained on FraudBench-NG.
+"""TreeSHAP attribution of the Table-4 XGBoost model (same training sample and settings as compare.py).
 usage: python shap_compare.py fraudbench.parquet   -> results/shap.json (plotted by make_figures.py)"""
 import os, sys, json
 os.makedirs('results', exist_ok=True); os.makedirs('figures', exist_ok=True)
 import numpy as np, pandas as pd, shap, xgboost as xgb
+import generate_dataset as G
 from sklearn.metrics import average_precision_score, roc_auc_score
 import matplotlib; matplotlib.use('Agg'); import matplotlib.pyplot as plt
 
@@ -22,13 +23,12 @@ def group(col):
 
 def run(d):
     y = d.is_fraud.values
-    Xd = d.drop(columns=[c for c in DROP if c in d.columns])
-    X = pd.get_dummies(Xd, columns=[c for c in CAT if c in Xd.columns]).astype(float)
+    X = G.model_matrix(d)                                  # the same feature matrix as compare.py
     ti = d.timestamp.astype('int64').values; q1, q2 = np.quantile(ti, [.6, .8]); tr, te = ti < q1, ti >= q2
     rng = np.random.default_rng(0)
-    idx = np.r_[np.flatnonzero(tr & (y == 1)), rng.choice(np.flatnonzero(tr & (y == 0)), 200000, replace=False)]
+    idx = np.r_[np.flatnonzero(tr & (y == 1)), rng.choice(np.flatnonzero(tr & (y == 0)), 300000, replace=False)]
     m = xgb.XGBClassifier(n_estimators=300, max_depth=6, learning_rate=.05, subsample=.8, colsample_bytree=.8, scale_pos_weight=50,
-                          n_jobs=-1, random_state=0).fit(X.values[idx], y[idx])
+                          eval_metric='aucpr', n_jobs=2, random_state=0).fit(X.values[idx], y[idx])
     pt = m.predict_proba(X.values[te])[:, 1]
     tei = np.flatnonzero(te)
     samp = np.r_[tei[y[tei] == 1], rng.choice(tei[y[tei] == 0], 4000, replace=False)]      # all test fraud + 4,000 legitimate

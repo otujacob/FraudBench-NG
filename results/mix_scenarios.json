@@ -1,0 +1,317 @@
+{
+ "per_seed": [
+  {
+   "scenario": "assumed",
+   "seed": 11,
+   "pr_auc": 0.012258569084497397,
+   "pr_first": 0.009082515039116449,
+   "rec1": 0.12087912087912088,
+   "channel_importance": 0.0739687898497017,
+   "fraud_test": 91
+  },
+  {
+   "scenario": "assumed",
+   "seed": 12,
+   "pr_auc": 0.014788878885298968,
+   "pr_first": 0.004417638186937624,
+   "rec1": 0.2523364485981308,
+   "channel_importance": 0.06703133496813012,
+   "fraud_test": 107
+  },
+  {
+   "scenario": "assumed",
+   "seed": 13,
+   "pr_auc": 0.009709869222075493,
+   "pr_first": 0.0048230525707717185,
+   "rec1": 0.2345679012345679,
+   "channel_importance": 0.07034762198520439,
+   "fraud_test": 81
+  },
+  {
+   "scenario": "assumed",
+   "seed": 14,
+   "pr_auc": 0.02117401971464034,
+   "pr_first": 0.02570130947682193,
+   "rec1": 0.18333333333333332,
+   "channel_importance": 0.0720080205012521,
+   "fraud_test": 60
+  },
+  {
+   "scenario": "assumed",
+   "seed": 15,
+   "pr_auc": 0.008802131327900286,
+   "pr_first": 0.004165067725890356,
+   "rec1": 0.24444444444444444,
+   "channel_importance": 0.0718925999302615,
+   "fraud_test": 90
+  },
+  {
+   "scenario": "assumed",
+   "seed": 16,
+   "pr_auc": 0.026190288100902046,
+   "pr_first": 0.004955781871365963,
+   "rec1": 0.22115384615384615,
+   "channel_importance": 0.06536379011383053,
+   "fraud_test": 104
+  },
+  {
+   "scenario": "assumed",
+   "seed": 17,
+   "pr_auc": 0.0030112916833587855,
+   "pr_first": 0.0029636741113817544,
+   "rec1": 0.05714285714285714,
+   "channel_importance": 0.06976164581823861,
+   "fraud_test": 70
+  },
+  {
+   "scenario": "assumed",
+   "seed": 18,
+   "pr_auc": 0.04683087952861393,
+   "pr_first": 0.04902865166087295,
+   "rec1": 0.23333333333333334,
+   "channel_importance": 0.06727892625357319,
+   "fraud_test": 90
+  },
+  {
+   "scenario": "assumed",
+   "seed": 19,
+   "pr_auc": 0.03656264165109515,
+   "pr_first": 0.007510477354821801,
+   "rec1": 0.35,
+   "channel_importance": 0.0725524921643213,
+   "fraud_test": 80
+  },
+  {
+   "scenario": "assumed",
+   "seed": 20,
+   "pr_auc": 0.05279775245123731,
+   "pr_first": 0.020406506493258314,
+   "rec1": 0.1836734693877551,
+   "channel_importance": 0.06808573741452777,
+   "fraud_test": 98
+  },
+  {
+   "scenario": "mobile_heavy",
+   "seed": 11,
+   "pr_auc": 0.006747646465930856,
+   "pr_first": 0.0038902298312752537,
+   "rec1": 0.2,
+   "channel_importance": 0.06153203724859038,
+   "fraud_test": 100
+  },
+  {
+   "scenario": "mobile_heavy",
+   "seed": 12,
+   "pr_auc": 0.06191691617943419,
+   "pr_first": 0.00835097570231074,
+   "rec1": 0.2627118644067797,
+   "channel_importance": 0.06336299933263773,
+   "fraud_test": 118
+  },
+  {
+   "scenario": "mobile_heavy",
+   "seed": 13,
+   "pr_auc": 0.04127697538905117,
+   "pr_first": 0.005056946226438892,
+   "rec1": 0.27450980392156865,
+   "channel_importance": 0.05605069852149344,
+   "fraud_test": 102
+  },
+  {
+   "scenario": "mobile_heavy",
+   "seed": 14,
+   "pr_auc": 0.039289887170732174,
+   "pr_first": 0.013951470006311901,
+   "rec1": 0.23863636363636365,
+   "channel_importance": 0.06120743921069314,
+   "fraud_test": 88
+  },
+  {
+   "scenario": "mobile_heavy",
+   "seed": 15,
+   "pr_auc": 0.0153012012233729,
+   "pr_first": 0.004610830753419848,
+   "rec1": 0.25274725274725274,
+   "channel_importance": 0.05763032999271099,
+   "fraud_test": 91
+  },
+  {
+   "scenario": "mobile_heavy",
+   "seed": 16,
+   "pr_auc": 0.01262383405339726,
+   "pr_first": 0.013762761360878431,
+   "rec1": 0.14,
+   "channel_importance": 0.06476758567048296,
+   "fraud_test": 100
+  },
+  {
+   "scenario": "mobile_heavy",
+   "seed": 17,
+   "pr_auc": 0.03971096730377444,
+   "pr_first": 0.051231756606804006,
+   "rec1": 0.15151515151515152,
+   "channel_importance": 0.05610447703101338,
+   "fraud_test": 99
+  },
+  {
+   "scenario": "mobile_heavy",
+   "seed": 18,
+   "pr_auc": 0.01054131241789316,
+   "pr_first": 0.0045210324583998445,
+   "rec1": 0.23232323232323232,
+   "channel_importance": 0.06036137198393292,
+   "fraud_test": 99
+  },
+  {
+   "scenario": "mobile_heavy",
+   "seed": 19,
+   "pr_auc": 0.008255822483844799,
+   "pr_first": 0.002057002181117883,
+   "rec1": 0.18823529411764706,
+   "channel_importance": 0.06995578837247958,
+   "fraud_test": 85
+  },
+  {
+   "scenario": "mobile_heavy",
+   "seed": 20,
+   "pr_auc": 0.007086618528764787,
+   "pr_first": 0.007556306729036538,
+   "rec1": 0.1262135922330097,
+   "channel_importance": 0.04732098618041164,
+   "fraud_test": 103
+  },
+  {
+   "scenario": "nibss_fraud_mix",
+   "seed": 11,
+   "pr_auc": 0.08519502778263266,
+   "pr_first": 0.008190983688073151,
+   "rec1": 0.3269230769230769,
+   "channel_importance": 0.042049344991329896,
+   "fraud_test": 104
+  },
+  {
+   "scenario": "nibss_fraud_mix",
+   "seed": 12,
+   "pr_auc": 0.022324241389994406,
+   "pr_first": 0.01647801721293375,
+   "rec1": 0.2191780821917808,
+   "channel_importance": 0.042082156800967586,
+   "fraud_test": 73
+  },
+  {
+   "scenario": "nibss_fraud_mix",
+   "seed": 13,
+   "pr_auc": 0.005205668008786721,
+   "pr_first": 0.0010687895875424597,
+   "rec1": 0.13,
+   "channel_importance": 0.04039792495660513,
+   "fraud_test": 100
+  },
+  {
+   "scenario": "nibss_fraud_mix",
+   "seed": 14,
+   "pr_auc": 0.0200589935081358,
+   "pr_first": 0.019395986036425,
+   "rec1": 0.19811320754716982,
+   "channel_importance": 0.0434116820820392,
+   "fraud_test": 106
+  },
+  {
+   "scenario": "nibss_fraud_mix",
+   "seed": 15,
+   "pr_auc": 0.014130899703647531,
+   "pr_first": 0.004982856075061443,
+   "rec1": 0.22826086956521738,
+   "channel_importance": 0.04594969245292313,
+   "fraud_test": 92
+  },
+  {
+   "scenario": "nibss_fraud_mix",
+   "seed": 16,
+   "pr_auc": 0.016828078386126377,
+   "pr_first": 0.003318027278419851,
+   "rec1": 0.2597402597402597,
+   "channel_importance": 0.04385248929509987,
+   "fraud_test": 77
+  },
+  {
+   "scenario": "nibss_fraud_mix",
+   "seed": 17,
+   "pr_auc": 0.007290378914069475,
+   "pr_first": 0.003401162492091207,
+   "rec1": 0.1935483870967742,
+   "channel_importance": 0.04686827338796427,
+   "fraud_test": 93
+  },
+  {
+   "scenario": "nibss_fraud_mix",
+   "seed": 18,
+   "pr_auc": 0.011251852996234147,
+   "pr_first": 0.006697961480839716,
+   "rec1": 0.17757009345794392,
+   "channel_importance": 0.04285854877498441,
+   "fraud_test": 107
+  },
+  {
+   "scenario": "nibss_fraud_mix",
+   "seed": 19,
+   "pr_auc": 0.005242633702093222,
+   "pr_first": 0.0015914354196245573,
+   "rec1": 0.11650485436893204,
+   "channel_importance": 0.044747573542413946,
+   "fraud_test": 103
+  },
+  {
+   "scenario": "nibss_fraud_mix",
+   "seed": 20,
+   "pr_auc": 0.008864024370709085,
+   "pr_first": 0.0038962456685843823,
+   "rec1": 0.16853932584269662,
+   "channel_importance": 0.04382332672208699,
+   "fraud_test": 89
+  }
+ ],
+ "pooled": {
+  "assumed": {
+   "pr_auc": 0.01448503119617104,
+   "rec1": 0.2066590126291619,
+   "n_fraud": 871
+  },
+  "mobile_heavy": {
+   "pr_auc": 0.019756641202345236,
+   "rec1": 0.20406091370558377,
+   "n_fraud": 985
+  },
+  "nibss_fraud_mix": {
+   "pr_auc": 0.012690575036094607,
+   "rec1": 0.20127118644067796,
+   "n_fraud": 944
+  }
+ },
+ "mixes": {
+  "assumed": [
+   0.05,
+   0.11,
+   0.11,
+   0.42,
+   0.16,
+   0.15
+  ],
+  "mobile_heavy": [
+   0.03,
+   0.07,
+   0.07,
+   0.6,
+   0.12,
+   0.11
+  ],
+  "nibss_fraud_mix": [
+   0.007558230829625753,
+   0.02563726773096048,
+   0.056330803454593036,
+   0.49752420832242866,
+   0.18382622350170114,
+   0.22912326616069092
+  ]
+ }
+}
